@@ -1,6 +1,18 @@
 #!/bin/bash
 # based on: https://github.com/fomichev/dotfiles/blob/master/bin/q
 
+# taskset --cpu-list 0-15:2 qemu-system-x86_64  \
+#   -enable-kvm \
+#   -smp cpus=8,cores=8,sockets=1,threads=1 \
+#   -cpu host \
+#   -m 8G \
+#   -nographic \
+#   -device virtio-net-pci,netdev=net0 \
+#   -netdev user,id=net0,hostfwd=tcp::2222-:22 \
+#   -drive if=virtio,format=qcow2,file=../images/noble-server-cloudimg-amd64-vm1.img \
+#   -drive if=virtio,media=cdrom,file=../seeds/vm1-seed.iso \
+#   -device vfio-pci,host=0000:01:00.2 
+
 usage() {
 	echo "q [options] [path to bzImage] [script]"
 	echo
@@ -45,17 +57,18 @@ host() {
 	cmdline+=" kgdboc=ttyS1,115200"
 
 	local net
-	if [ "$SSH" = "y" ]; then
-    # check container env assume docker
-    if [ -f /.dockerenv ]; then
-		  net+=" -netdev user,id=virtual,hostfwd=tcp::52222-:22,hostfwd=tcp::52223-:52223"
-    else
-		  net+=" -netdev user,id=virtual,hostfwd=tcp:127.0.0.1:52222-:22"
-    fi
-	else
-		net+=" -netdev user,id=virtual"
-	fi
-	net+=" -device virtio-net-pci,netdev=virtual"
+	# if [ "$SSH" = "y" ]; then
+    # # check container env assume docker
+    # if [ -f /.dockerenv ]; then
+	# 	  net+=" -netdev user,id=virtual,hostfwd=tcp::52222-:22,hostfwd=tcp::52223-:52223"
+    # else
+	# 	  net+=" -netdev user,id=virtual,hostfwd=tcp:127.0.0.1:52222-:22,"
+    # fi
+	# else
+	# 	net+=" -netdev user,id=virtual"
+	# fi
+	net+=" -netdev user,id=net0,hostfwd=tcp::22222-:22"
+	net+=" -device vfio-pci,host=0000:01:00.3"
 
 	local opts
 	[ "$MODULES" = "y" ] && opts+=" -m"
@@ -68,10 +81,10 @@ host() {
 	cmdline+=" $CMDLINE"
 	cmdline+=" init=/bin/sh -- -c \"$(realpath $0) -g $opts -H $HOME -k '$(pwd)' -a '$*'\""
 
-	qemu-system-x86_64 \
+	taskset --cpu-list 0-15:2 qemu-system-x86_64 \
 		-nodefaults \
 		-no-reboot \
-		-machine accel=kvm:tcg \
+		-enable-kvm \
 		-device i6300esb \
 		-device virtio-rng-pci \
 		-cpu host \
@@ -195,6 +208,12 @@ guest() {
 	ulimit -n 819200 &>/dev/null
 	ulimit -a &>/dev/null
 
+	say networking-virtual-nic
+
+	ip addr add 192.168.10.3/29 dev ens4
+	ip link set ens4 mtu 9000
+	ip link set ens4 up
+
 	say root passwd
 	rm -f /etc/{shadow,gshadow}
 	pwconv
@@ -284,8 +303,8 @@ SSH=n
 CMDLINE=""
 QEMUARG=""
 
-NRCPU=4
-MEMORY=2048
+NRCPU=8
+MEMORY=8192
 
 while getopts "hgmsk:c:a:H:N:M:q:" opt; do
 	case $opt in
