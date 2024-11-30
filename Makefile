@@ -80,6 +80,8 @@ enter-docker-fullvm:
 	--device=/dev/vfio:/dev/vfio \
 	--device=/dev/kvm:/dev/kvm --device=/dev/net/tun:/dev/net/tun \
     --network host \
+	-p 127.0.0.1:${SSH_PORT}:52222 \
+	-p 127.0.0.1:${NET_PORT}:52223 \
 	-v ${BASE_PROJ}:/linux-dev-env -v ${LINUX}:/linux \
 	-w /linux-dev-env \
 	-it ${DOCKER_TAG}:latest /bin/bash

@@ -22,7 +22,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install --fix-missing -y git build-es
 # Install memcached
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y memcached
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y pciutils libvirt-dev libcap-ng-dev libattr1-dev libfdt-dev libpixman-1-dev zstd xz-utils build-essential libncurses-dev bison flex libssl-dev libelf-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y pciutils libvirt-dev libcap-ng-dev libattr1-dev libfdt-dev libpixman-1-dev zstd xz-utils build-essential libncurses-dev bison flex libssl-dev libelf-dev cpio
 
 # Install memtier_benchmark
 # RUN mkdir -p /downloads_memtier && \

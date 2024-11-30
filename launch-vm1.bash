@@ -13,6 +13,7 @@ taskset --cpu-list 0-15:2 qemu-system-x86_64  \
   -device vfio-pci,host=0000:01:00.3
 
 # net.ifnames=0 amd_iommu=on iommu=pt vfio_iommu_type1.allow_unsafe_interrupts=1
+# pci=nommconf pci=assign-busses pci=nocrs pci=realloc iommu=pt
 
 # taskset --cpu-list 0-15:2 qemu-system-x86_64  \
 #   -smp 8 \
@@ -20,7 +21,7 @@ taskset --cpu-list 0-15:2 qemu-system-x86_64  \
 #   -m 16G \
 #   -nographic \
 #   -kernel linux/arch/x86/boot/bzImage \
-#   -append "console=ttyS0 root=/dev/vda1 earlyprintk=serial iommu=on net.ifnames=0 pci=nommconf pci=assign-busses pci=nocrs pci=realloc iommu=pt" \
+#   -append "console=ttyS0 root=/dev/vda1 earlyprintk=serial iommu=on net.ifnames=0" \
 #   -device virtio-net-pci,netdev=net0 \
 #   -netdev user,id=net0,hostfwd=tcp::22222-:22 \
 #   -drive if=virtio,format=qcow2,file=images/noble-server-cloudimg-amd64-vm1.img \
